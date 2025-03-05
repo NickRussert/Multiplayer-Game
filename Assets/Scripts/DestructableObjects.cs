@@ -22,25 +22,29 @@ public class DestructibleObstacle : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Bullet")) // If hit by a bullet
+        if (other.CompareTag("Bullet")) // If bullet hits an obstacle
         {
-            Vector3 hitPosition = other.ClosestPoint(transform.position);
-            Vector3Int tilePosition = tilemap.WorldToCell(hitPosition + new Vector3(0.5f, 0.5f, 0)); // Adjusted slightly
-
+            Vector3 hitPosition = other.transform.position; // Get bullet's impact world position
+            Vector3Int tilePosition = tilemap.WorldToCell(hitPosition); // Convert to tile position
 
             Debug.Log("Bullet hit at world position: " + hitPosition);
             Debug.Log("Converted tile position: " + tilePosition);
 
-            if (tilemap.HasTile(tilePosition)) // Check if a tile exists at the hit position
+            // Create a buffer range around the tile
+            for (int x = -1; x <= 1; x++)
             {
-                Debug.Log("Tile exists at: " + tilePosition + " and will be removed");
+                for (int y = -1; y <= 1; y++)
+                {
+                    Vector3Int bufferedTilePos = new Vector3Int(tilePosition.x + x, tilePosition.y + y, tilePosition.z);
 
-                tilemap.SetTile(tilePosition, null);
-                tilemap.RefreshAllTiles();  // Force a refresh
-            }
-            else
-            {
-                Debug.LogWarning("No tile found at: " + tilePosition);
+                    if (tilemap.HasTile(bufferedTilePos)) // Check if a tile exists in the buffered range
+                    {
+                        Debug.Log(" Tile found at: " + bufferedTilePos + " - Removing!");
+                        tilemap.SetTile(bufferedTilePos, null); // Remove the tile
+                        tilemap.RefreshAllTiles();
+                        break; // Exit loop once we remove a tile
+                    }
+                }
             }
 
             Destroy(other.gameObject); // Destroy bullet on impact
