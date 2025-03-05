@@ -34,10 +34,12 @@ public class MultiplayerMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        //  Move the tank forward/backward along the X-axis
-        rb.velocity = transform.right * moveInput * moveSpeed;
+        // Use MovePosition instead of velocity to prevent glitching through obstacles
+        Vector2 movement = transform.right * moveInput * moveSpeed * Time.fixedDeltaTime;
+        rb.MovePosition(rb.position + movement);
 
-        //  Rotate the tank left/right
-        rb.angularVelocity = -rotateInput * rotationSpeed;
+        // Rotate the tank
+        float rotation = -rotateInput * rotationSpeed * Time.fixedDeltaTime;
+        rb.MoveRotation(rb.rotation + rotation);
     }
 }
