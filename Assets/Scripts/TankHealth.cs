@@ -11,6 +11,7 @@ public class TankHealth : MonoBehaviour
     public float blinkInterval = 0.2f; // Speed of blinking
 
     private SpriteRenderer[] spriteRenderers; // Store all sprite renderers
+    public GameObject arrow; // Assign the arrow in the Inspector
 
     void Start()
     {
@@ -64,6 +65,14 @@ public class TankHealth : MonoBehaviour
     void DestroyTank()
     {
         Debug.Log(gameObject.name + " has been destroyed!");
+
+        // Turn off the arrow when the tank is destroyed
+        if (arrow != null)
+        {
+            arrow.SetActive(false);
+        }
+
         Destroy(gameObject);
     }
 }
+
