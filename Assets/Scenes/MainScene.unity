@@ -326,6 +326,10 @@ MonoBehaviour:
   target: {fileID: 2143569604}
   smoothSpeed: 5
   offset: {x: 0, y: 0, z: -10}
+  minX: -10
+  maxX: 10
+  minY: -10
+  maxY: 10
 --- !u!81 &783716128
 AudioListener:
   m_ObjectHideFlags: 0
@@ -688,10 +692,10 @@ MonoBehaviour:
   groundTilemap: {fileID: 1452771297}
   groundTiles:
   - {fileID: 11400000, guid: 66e1de1f1fe76cd4e88b8ae25ad241c8, type: 2}
-  minX: -10
-  maxX: 10
-  minY: -10
-  maxY: 10
+  minX: -15
+  maxX: 15
+  minY: -15
+  maxY: 15
 --- !u!1 &1592305158
 GameObject:
   m_ObjectHideFlags: 0
@@ -933,10 +937,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c600cb6db081bcc4e93c4b6dae0a9b12, type: 2}
   - {fileID: 11400000, guid: 7ab119a1f50e16349b65bcbb372420ef, type: 2}
   - {fileID: 11400000, guid: 098e69793710af44ea012bb9a9c0f3ec, type: 2}
-  minX: -10
-  maxX: 10
-  minY: -10
-  maxY: 10
+  minX: -15
+  maxX: 15
+  minY: -15
+  maxY: 15
   obstacleCount: 20
   blackTank: {fileID: 549342516}
   redTank: {fileID: 2143569604}
@@ -1020,6 +1024,10 @@ MonoBehaviour:
   target: {fileID: 549342516}
   smoothSpeed: 5
   offset: {x: 0, y: 0, z: -10}
+  minX: -10
+  maxX: 10
+  minY: -10
+  maxY: 10
 --- !u!81 &1625675200
 AudioListener:
   m_ObjectHideFlags: 0

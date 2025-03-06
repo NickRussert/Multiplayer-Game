@@ -11,6 +11,9 @@ public class MultiplayerMovement : MonoBehaviour
 
     public bool isPlayer1 = true; // Toggle in Unity: Player 1 , Player 2 
 
+    [SerializeField] private float minX = -15f, maxX = 15f; // X boundaries
+    [SerializeField] private float minY = -15f, maxY = 15f; // Y boundaries
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -34,12 +37,20 @@ public class MultiplayerMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        // Use MovePosition instead of velocity to prevent glitching through obstacles
+        // Move the tank forward/backward
         Vector2 movement = transform.right * moveInput * moveSpeed * Time.fixedDeltaTime;
-        rb.MovePosition(rb.position + movement);
+        Vector2 newPosition = rb.position + movement;
+
+        // Clamp position to keep within the map bounds
+        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
+        newPosition.y = Mathf.Clamp(newPosition.y, minY, maxY);
+
+        // Apply the movement (stays within boundaries)
+        rb.MovePosition(newPosition);
 
         // Rotate the tank
         float rotation = -rotateInput * rotationSpeed * Time.fixedDeltaTime;
         rb.MoveRotation(rb.rotation + rotation);
     }
 }
+
