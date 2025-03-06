@@ -529,6 +529,7 @@ GameObject:
   - component: {fileID: 1452771295}
   - component: {fileID: 1452771297}
   - component: {fileID: 1452771296}
+  - component: {fileID: 1452771298}
   m_Layer: 0
   m_Name: ground
   m_TagString: Untagged
@@ -672,6 +673,25 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!114 &1452771298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1452771294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51d4f2b0d00c19744bd07b302a6956b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  groundTilemap: {fileID: 1452771297}
+  groundTiles:
+  - {fileID: 11400000, guid: 66e1de1f1fe76cd4e88b8ae25ad241c8, type: 2}
+  minX: -10
+  maxX: 10
+  minY: -10
+  maxY: 10
 --- !u!1 &1592305158
 GameObject:
   m_ObjectHideFlags: 0
@@ -918,6 +938,9 @@ MonoBehaviour:
   minY: -10
   maxY: 10
   obstacleCount: 20
+  blackTank: {fileID: 549342516}
+  redTank: {fileID: 2143569604}
+  safeZoneRadius: 2
 --- !u!66 &1592305166
 CompositeCollider2D:
   m_ObjectHideFlags: 0
