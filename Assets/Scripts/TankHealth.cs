@@ -7,24 +7,27 @@ public class TankHealth : MonoBehaviour
     private int currentHealth;
 
     private bool isInvincible = false;
-    public float invincibilityDuration = 2f; // How long the tank is immune
-    public float blinkInterval = 0.2f; // Speed of blinking
+    public float invincibilityDuration = 2f;
+    public float blinkInterval = 0.2f;
 
-    private SpriteRenderer[] spriteRenderers; // Store all sprite renderers
+    private SpriteRenderer[] spriteRenderers;
     public GameObject arrow; // Assign the arrow in the Inspector
+    public GameObject[] hearts; // Assign the heart GameObjects in the Inspector
 
     void Start()
     {
         currentHealth = maxHealth;
-        spriteRenderers = GetComponentsInChildren<SpriteRenderer>(); // Get all child sprites
+        spriteRenderers = GetComponentsInChildren<SpriteRenderer>();
     }
 
     public void TakeDamage(int damage)
     {
-        if (isInvincible) return; // Ignore damage if currently invincible
+        if (isInvincible) return;
 
         currentHealth -= damage;
         Debug.Log(gameObject.name + " took damage! Health: " + currentHealth);
+
+        UpdateHearts(); // Hide a heart when taking damage
 
         if (currentHealth <= 0)
         {
@@ -36,6 +39,15 @@ public class TankHealth : MonoBehaviour
         }
     }
 
+    void UpdateHearts()
+    {
+        // Disable a heart GameObject when losing health
+        if (currentHealth < hearts.Length && currentHealth >= 0)
+        {
+            hearts[currentHealth].SetActive(false); // Hide the last active heart
+        }
+    }
+
     IEnumerator BecomeInvincible()
     {
         isInvincible = true;
@@ -43,14 +55,14 @@ public class TankHealth : MonoBehaviour
 
         while (elapsedTime < invincibilityDuration)
         {
-            ToggleSpriteVisibility(false); // Hide all sprites
+            ToggleSpriteVisibility(false);
             yield return new WaitForSeconds(blinkInterval);
-            ToggleSpriteVisibility(true); // Show all sprites
+            ToggleSpriteVisibility(true);
             yield return new WaitForSeconds(blinkInterval);
             elapsedTime += blinkInterval * 2;
         }
 
-        ToggleSpriteVisibility(true); // Ensure tank is visible after blinking
+        ToggleSpriteVisibility(true);
         isInvincible = false;
     }
 
@@ -75,4 +87,3 @@ public class TankHealth : MonoBehaviour
         Destroy(gameObject);
     }
 }
-
