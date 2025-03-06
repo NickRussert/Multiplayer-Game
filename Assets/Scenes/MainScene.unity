@@ -142,6 +142,10 @@ MonoBehaviour:
   moveSpeed: 5
   rotationSpeed: 200
   isPlayer1: 1
+  minX: -14
+  maxX: 14
+  minY: -14
+  maxY: 14
 --- !u!50 &549342513
 Rigidbody2D:
   serializedVersion: 4
@@ -201,6 +205,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 3
+  invincibilityDuration: 2
+  blinkInterval: 0.2
 --- !u!61 &549342519
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -326,10 +332,10 @@ MonoBehaviour:
   target: {fileID: 2143569604}
   smoothSpeed: 5
   offset: {x: 0, y: 0, z: -10}
-  minX: -10
+  minX: -9.5
   maxX: 10
-  minY: -10
-  maxY: 10
+  minY: -9
+  maxY: 9
 --- !u!81 &783716128
 AudioListener:
   m_ObjectHideFlags: 0
@@ -453,11 +459,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1000833922525642785, guid: 528f60aec4f2747ed9a8c7694b313e24, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 5
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 1000833922525642785, guid: 528f60aec4f2747ed9a8c7694b313e24, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 1000833922525642785, guid: 528f60aec4f2747ed9a8c7694b313e24, type: 3}
       propertyPath: m_LocalPosition.z
@@ -477,7 +483,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1000833922525642785, guid: 528f60aec4f2747ed9a8c7694b313e24, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.7071068
+      value: -0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: 1000833922525642785, guid: 528f60aec4f2747ed9a8c7694b313e24, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -489,7 +495,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1000833922525642785, guid: 528f60aec4f2747ed9a8c7694b313e24, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 90
+      value: -90
       objectReference: {fileID: 0}
     - target: {fileID: 1000833922525642786, guid: 528f60aec4f2747ed9a8c7694b313e24, type: 3}
       propertyPath: m_Name
@@ -598,7 +604,7 @@ TilemapRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -10
   m_ChunkSize: {x: 32, y: 32, z: 32}
-  m_ChunkCullingBounds: {x: 0.78, y: 0.78, z: 0}
+  m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
   m_MaxChunkCount: 16
   m_MaxFrameAge: 16
   m_SortOrder: 0
@@ -613,46 +619,36 @@ Tilemap:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1452771294}
   m_Enabled: 1
-  m_Tiles:
-  - first: {x: 0, y: -1, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 0
-      m_TileSpriteIndex: 0
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741825
+  m_Tiles: {}
   m_AnimatedTiles: {}
   m_TileAssetArray:
-  - m_RefCount: 1
-    m_Data: {fileID: 11400000, guid: a3ffb29a74e64824fb068ec20ae650e1, type: 2}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   m_TileSpriteArray:
-  - m_RefCount: 1
-    m_Data: {fileID: 21300000, guid: fe099759ee86d5b4592a73dd7a944561, type: 3}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   m_TileMatrixArray:
-  - m_RefCount: 1
+  - m_RefCount: 0
     m_Data:
-      e00: 1
+      e00: 0
       e01: 0
-      e02: 0
-      e03: 0
+      e02: -1.761843e-19
+      e03: -1.761843e-19
       e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
+      e11: 0
+      e12: 1.009e-42
+      e13: 1.009e-42
+      e20: -505.78857
+      e21: -4.627505e+13
+      e22: 3.6831313e-19
+      e23: -3.7014733e+19
+      e30: 4.5905e-41
+      e31: 1.012e-42
+      e32: 1.01e-42
+      e33: 1.012e-42
   m_TileColorArray:
-  - m_RefCount: 1
-    m_Data: {r: 1, g: 1, b: 1, a: 1}
+  - m_RefCount: 0
+    m_Data: {r: 3.6053e-41, g: 3.6053e-41, b: 3.6053e-41, a: 3.6053e-41}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -941,7 +937,7 @@ MonoBehaviour:
   maxX: 15
   minY: -15
   maxY: 15
-  obstacleCount: 20
+  obstacleCount: 40
   blackTank: {fileID: 549342516}
   redTank: {fileID: 2143569604}
   safeZoneRadius: 2
@@ -1024,10 +1020,10 @@ MonoBehaviour:
   target: {fileID: 549342516}
   smoothSpeed: 5
   offset: {x: 0, y: 0, z: -10}
-  minX: -10
+  minX: -9.5
   maxX: 10
-  minY: -10
-  maxY: 10
+  minY: -9
+  maxY: 9
 --- !u!81 &1625675200
 AudioListener:
   m_ObjectHideFlags: 0
@@ -1151,11 +1147,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1614768868789991846, guid: 467d703835d044cb4a8a38c24aa1bc79, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5
+      value: -10
       objectReference: {fileID: 0}
     - target: {fileID: 1614768868789991846, guid: 467d703835d044cb4a8a38c24aa1bc79, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -10
       objectReference: {fileID: 0}
     - target: {fileID: 1614768868789991846, guid: 467d703835d044cb4a8a38c24aa1bc79, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1232,6 +1228,10 @@ MonoBehaviour:
   moveSpeed: 5
   rotationSpeed: 200
   isPlayer1: 0
+  minX: -14
+  maxX: 14
+  minY: -14
+  maxY: 14
 --- !u!50 &2143569601
 Rigidbody2D:
   serializedVersion: 4
@@ -1291,6 +1291,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 3
+  invincibilityDuration: 2
+  blinkInterval: 0.2
 --- !u!61 &2143569607
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1340,8 +1342,8 @@ BoxCollider2D:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 1625675202}
+  - {fileID: 783716130}
   - {fileID: 1435315738}
   - {fileID: 2093640829}
   - {fileID: 557221536}
-  - {fileID: 1625675202}
-  - {fileID: 783716130}
