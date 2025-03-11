@@ -7,6 +7,9 @@ public class Bullet : MonoBehaviour
 
     private Rigidbody2D rb;
 
+    public AudioClip obstacleHitSound; // Assign in Inspector
+    public float hitVolume = 0.5f; // Adjust volume for obstacle hit sound
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -27,8 +30,16 @@ public class Bullet : MonoBehaviour
         }
         else if (other.CompareTag("Obstacle")) // If bullet hits an obstacle
         {
-            Debug.Log("Bullet hit an obstacle!"); // Debugging message
+            Debug.Log("Bullet hit an obstacle!");
+
+            //  Play obstacle hit sound
+            if (obstacleHitSound != null)
+            {
+                AudioSource.PlayClipAtPoint(obstacleHitSound, transform.position, hitVolume);
+            }
+
             Destroy(gameObject); // Destroy bullet
         }
     }
 }
+

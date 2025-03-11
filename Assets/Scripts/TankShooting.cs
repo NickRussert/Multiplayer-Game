@@ -2,11 +2,13 @@ using UnityEngine;
 
 public class TankShooting : MonoBehaviour
 {
-    public GameObject bulletPrefab; // Assign Bullet Prefab in Inspector
-    public Transform firePoint; // Empty GameObject placed at tank's cannon
-    public float fireCooldown = 1f; // Cooldown time between shots
+    public GameObject bulletPrefab;
+    public Transform firePoint;
+    public float fireCooldown = 1f;
+    private float lastFireTime;
 
-    private float lastFireTime; // Tracks when the last shot was fired
+    public AudioClip shootSound; // Assign in Inspector
+    public float shootVolume = 0.5f; // Adjust shooting volume
 
     void Update()
     {
@@ -22,20 +24,20 @@ public class TankShooting : MonoBehaviour
 
     bool CanShoot()
     {
-        return Time.time >= lastFireTime + fireCooldown; // Ensures cooldown is over
+        return Time.time >= lastFireTime + fireCooldown;
     }
 
     void Shoot()
     {
-        lastFireTime = Time.time; // Update last shot time
+        lastFireTime = Time.time;
+        Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
 
-        // Instantiate the bullet at the fire point
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
-
-        // Ensure bullet rotates correctly to face the right direction
-        bullet.transform.rotation = transform.rotation;
+        // Play shooting sound at the fire point (instead of tank)
+        if (shootSound != null)
+        {
+            AudioSource.PlayClipAtPoint(shootSound, firePoint.position, shootVolume);
+        }
 
         Debug.Log(gameObject.name + " fired a bullet!");
     }
 }
-
