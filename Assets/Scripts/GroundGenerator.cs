@@ -1,16 +1,21 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Unity.Netcode;
 
-public class GroundGenerator : MonoBehaviour
+public class GroundGenerator : NetworkBehaviour
 {
     [SerializeField] private Tilemap groundTilemap;   // Assign Ground Tilemap in Inspector
     [SerializeField] private TileBase[] groundTiles;  // Assign multiple ground tiles for variation
     [SerializeField] private int minX = 2, maxX = 18; // X bounds for ground
     [SerializeField] private int minY = 2, maxY = 10; // Y bounds for ground
 
-    void Start()
+    public override void OnNetworkSpawn()
     {
-        GenerateGround();
+        if (IsServer) //  Only the Host generates the ground
+        {
+            GenerateGround();
+            SyncGroundTilesClientRpc();
+        }
     }
 
     void GenerateGround()
@@ -32,5 +37,14 @@ public class GroundGenerator : MonoBehaviour
         }
 
         groundTilemap.RefreshAllTiles(); // Refresh to update visuals
+    }
+
+    [ClientRpc] //  This makes Clients sync the ground from the Host
+    void SyncGroundTilesClientRpc()
+    {
+        if (!IsServer) //  Only Clients execute this
+        {
+            GenerateGround();
+        }
     }
 }

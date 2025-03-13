@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Unity.Netcode;
 
-public class RandomMapGenerator : MonoBehaviour
+public class RandomMapGenerator : NetworkBehaviour
 {
     [SerializeField] private Tilemap tilemap;   // Assign the obstacle Tilemap in Inspector
     [SerializeField] private TileBase[] tiles;  // Assign obstacle tiles in Inspector
@@ -13,9 +14,13 @@ public class RandomMapGenerator : MonoBehaviour
     [SerializeField] private Transform redTank;   // Assign Player 2 (Red Tank) Transform
     [SerializeField] private float safeZoneRadius = 3f; // No obstacles will spawn within this radius of a tank
 
-    void Start()
+    public override void OnNetworkSpawn()
     {
-        GenerateRandomObstacles();
+        if (IsServer) //  Only the Host generates the obstacles
+        {
+            GenerateRandomObstacles();
+            SyncObstacleTilesClientRpc();
+        }
     }
 
     void GenerateRandomObstacles()
@@ -49,4 +54,14 @@ public class RandomMapGenerator : MonoBehaviour
 
         tilemap.RefreshAllTiles(); // Refresh Tilemap to apply changes
     }
+
+    [ClientRpc] //  This ensures Clients sync the obstacles from the Host
+    void SyncObstacleTilesClientRpc()
+    {
+        if (!IsServer) //  Only Clients execute this
+        {
+            GenerateRandomObstacles();
+        }
+    }
 }
+
