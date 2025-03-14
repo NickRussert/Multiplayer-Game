@@ -47,6 +47,14 @@ public class Bullet : NetworkBehaviour
         else if (other.CompareTag("Obstacle"))
         {
             Debug.Log("Bullet hit an obstacle!");
+
+            // Try to get the obstacle script and destroy the tile
+            DestructibleObstacle obstacle = other.GetComponent<DestructibleObstacle>();
+            if (obstacle != null)
+            {
+                obstacle.DestroyTileServerRpc(transform.position);
+            }
+
             PlayHitSoundClientRpc();
             DestroyBullet();
         }
@@ -73,4 +81,5 @@ public class Bullet : NetworkBehaviour
         }
     }
 }
+
 

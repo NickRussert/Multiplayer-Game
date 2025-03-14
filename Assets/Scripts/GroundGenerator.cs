@@ -4,20 +4,23 @@ using Unity.Netcode;
 
 public class GroundGenerator : NetworkBehaviour
 {
-    [SerializeField] private Tilemap groundTilemap;
-    [SerializeField] private TileBase[] groundTiles;
-    [SerializeField] private int minX = 2, maxX = 18;
-    [SerializeField] private int minY = 2, maxY = 10;
+    [SerializeField] private Tilemap groundTilemap; // Assign Ground Tilemap
+    [SerializeField] private TileBase groundTile; // Assign a tile
+    [SerializeField] private int minX = -15, maxX = 15;
+    [SerializeField] private int minY = -15, maxY = 15;
+
+    private NetworkVariable<bool> isGenerated = new NetworkVariable<bool>(false);
 
     public override void OnNetworkSpawn()
     {
-        if (IsServer) // Only the host generates the ground
+        if (IsServer && !isGenerated.Value) // Only Host generates
         {
             GenerateGround();
+            isGenerated.Value = true;
         }
     }
 
-    void GenerateGround()
+    private void GenerateGround()
     {
         groundTilemap.ClearAllTiles();
 
@@ -26,12 +29,10 @@ public class GroundGenerator : NetworkBehaviour
             for (int y = minY; y <= maxY; y++)
             {
                 Vector3Int tilePosition = new Vector3Int(x, y, 0);
-                TileBase randomTile = groundTiles[Random.Range(0, groundTiles.Length)];
-                groundTilemap.SetTile(tilePosition, randomTile);
+                groundTilemap.SetTile(tilePosition, groundTile);
             }
         }
 
-        groundTilemap.RefreshAllTiles();
         SyncGroundClientRpc();
     }
 

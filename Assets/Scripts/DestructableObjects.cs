@@ -9,39 +9,33 @@ public class DestructibleObstacle : NetworkBehaviour
     void Start()
     {
         tilemap = GetComponent<Tilemap>();
+    }
 
-        if (tilemap == null)
+    [ServerRpc(RequireOwnership = false)]
+    public void DestroyTileServerRpc(Vector3 hitPosition)
+    {
+        Vector3Int tilePosition = tilemap.WorldToCell(hitPosition);
+        if (tilemap.HasTile(tilePosition))
         {
-            Debug.LogError("Tilemap reference is NULL! Make sure this script is attached to the Obstacles tilemap.");
+            tilemap.SetTile(tilePosition, null); // Remove the tile
+            tilemap.RefreshAllTiles();
+            SyncTileDestructionClientRpc(tilePosition);
         }
+    }
+
+    [ClientRpc]
+    private void SyncTileDestructionClientRpc(Vector3Int tilePosition)
+    {
+        tilemap.SetTile(tilePosition, null); // Remove the tile on Clients
+        tilemap.RefreshAllTiles();
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Bullet"))
+        if (other.CompareTag("Bullet")) // If bullet hits an obstacle
         {
-            Vector3 hitPosition = other.transform.position;
-            Vector3Int tilePosition = tilemap.WorldToCell(hitPosition);
-
-            if (IsServer)
-            {
-                RemoveTileServerRpc(tilePosition);
-            }
-
+            DestroyTileServerRpc(other.transform.position);
             Destroy(other.gameObject);
         }
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void RemoveTileServerRpc(Vector3Int tilePosition)
-    {
-        RemoveTileClientRpc(tilePosition);
-    }
-
-    [ClientRpc]
-    private void RemoveTileClientRpc(Vector3Int tilePosition)
-    {
-        tilemap.SetTile(tilePosition, null);
-        tilemap.RefreshAllTiles();
     }
 }

@@ -58,7 +58,7 @@ public class TankHealth : NetworkBehaviour
 
     public void TakeDamage(int damage)
     {
-        if (isInvincible.Value) return;
+        if (isInvincible.Value) return; // Prevent damage if invincible
 
         if (IsServer)
         {
@@ -71,7 +71,7 @@ public class TankHealth : NetworkBehaviour
             }
             else
             {
-                StartInvincibilityServerRpc(); // Now properly calls invincibility function
+                StartInvincibilityServerRpc(); // Ensure invincibility starts properly
             }
         }
 
@@ -181,3 +181,5 @@ public class TankHealth : NetworkBehaviour
         Destroy(gameObject);
     }
 }
+
+
