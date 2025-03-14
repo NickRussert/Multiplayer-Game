@@ -2,23 +2,15 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using Unity.Netcode;
 
-public class DestructibleObstacle : NetworkBehaviour
+public class TilemapManager : NetworkBehaviour
 {
-    private Tilemap obstacleTilemap;
+    public Tilemap obstacleTilemap; // Assign in Inspector
 
     private void Start()
     {
-        // Get reference from TilemapManager
-        TilemapManager tilemapManager = FindObjectOfType<TilemapManager>();
-
-        if (tilemapManager != null)
-        {
-            obstacleTilemap = tilemapManager.obstacleTilemap;
-        }
-
         if (obstacleTilemap == null)
         {
-            Debug.LogError("Obstacle Tilemap not found! Ensure TilemapManager is in the scene and assigned.");
+            Debug.LogError("Obstacle Tilemap not assigned in TilemapManager!");
         }
     }
 
@@ -27,12 +19,11 @@ public class DestructibleObstacle : NetworkBehaviour
     {
         if (obstacleTilemap == null) return;
 
+        //  Convert world position to tile position
         Vector3Int cellPos = obstacleTilemap.WorldToCell(worldPosition);
+        Debug.Log($"Bullet hit at world position: {worldPosition}, Tile position: {cellPos}");
 
-        Debug.Log("Bullet hit at world position: " + worldPosition);
-        Debug.Log("Converted tile position: " + cellPos);
-
-        // Apply buffer around the impact position (1 tile radius)
+        //  Apply explosion radius (3x3)
         for (int x = -1; x <= 1; x++)
         {
             for (int y = -1; y <= 1; y++)
@@ -41,7 +32,7 @@ public class DestructibleObstacle : NetworkBehaviour
 
                 if (obstacleTilemap.HasTile(bufferedTilePos))
                 {
-                    Debug.Log("Tile found at: " + bufferedTilePos + " - Removing!");
+                    Debug.Log($"Removing tile at {bufferedTilePos}");
                     obstacleTilemap.SetTile(bufferedTilePos, null);
                 }
             }
@@ -66,3 +57,4 @@ public class DestructibleObstacle : NetworkBehaviour
         }
     }
 }
+

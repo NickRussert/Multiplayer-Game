@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using UnityEngine.Tilemaps;
 
 public class Bullet : NetworkBehaviour
 {
@@ -48,16 +49,37 @@ public class Bullet : NetworkBehaviour
         {
             Debug.Log("Bullet hit an obstacle!");
 
-            // Try to get the obstacle script and destroy the tile
-            DestructibleObstacle obstacle = other.GetComponent<DestructibleObstacle>();
-            if (obstacle != null)
+            TilemapManager tilemapManager = FindObjectOfType<TilemapManager>();
+            if (tilemapManager != null)
             {
-                obstacle.DestroyTileServerRpc(transform.position);
+                // Get the **exact impact position**
+                Vector3 hitPosition = GetImpactPoint(other);
+                Debug.Log($"Bullet impact at world position: {hitPosition}");
+
+                //  Call TilemapManager to destroy the correct tile
+                tilemapManager.DestroyTileServerRpc(hitPosition);
+            }
+            else
+            {
+                Debug.LogError("TilemapManager not found in the scene!");
             }
 
             PlayHitSoundClientRpc();
             DestroyBullet();
         }
+    }
+
+    //  Helper function to get the **exact impact point** on the obstacle
+    private Vector3 GetImpactPoint(Collider2D collider)
+    {
+        if (collider.TryGetComponent<Tilemap>(out Tilemap tilemap))
+        {
+            //  Convert bullet position to the **nearest tile center**
+            Vector3Int cellPosition = tilemap.WorldToCell(transform.position);
+            return tilemap.GetCellCenterWorld(cellPosition);
+        }
+
+        return collider.ClosestPoint(transform.position); // Fallback for non-tilemap objects
     }
 
     [ClientRpc]
@@ -81,5 +103,4 @@ public class Bullet : NetworkBehaviour
         }
     }
 }
-
 

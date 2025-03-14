@@ -319,7 +319,6 @@ MonoBehaviour:
   - {fileID: 1425605077802741251}
   hitSound: {fileID: 8300000, guid: 5ef16727a91e8ca4f827fadab8e12494, type: 3}
   explosionSound: {fileID: 8300000, guid: 84d64ae38a8685247afb91ea284580c4, type: 3}
-  pickupSound: {fileID: 8300000, guid: fba3073cecc153041ad66ad643632529, type: 3}
   soundVolume: 0.7
   explosionSprite: {fileID: 21300000, guid: f6263e5950a53174f9ddeae11915e768, type: 3}
 --- !u!61 &4232899251923339874
