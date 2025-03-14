@@ -1,24 +1,27 @@
 using UnityEngine;
+using Unity.Netcode;
 
-public class TankShooting : MonoBehaviour
+public class TankShooting : NetworkBehaviour
 {
     public GameObject bulletPrefab;
     public Transform firePoint;
     public float fireCooldown = 1f;
     private float lastFireTime;
 
-    public AudioClip shootSound; // Assign in Inspector
-    public float shootVolume = 0.5f; // Adjust shooting volume
+    public AudioClip shootSound;
+    public float shootVolume = 0.5f;
 
     void Update()
     {
+        if (!IsOwner) return; // Ensure only the local player can shoot
+
         if (CanShoot() && Input.GetKeyDown(KeyCode.Space) && gameObject.CompareTag("Player1"))
         {
-            Shoot();
+            RequestShootServerRpc();
         }
         else if (CanShoot() && Input.GetKeyDown(KeyCode.Return) && gameObject.CompareTag("Player2"))
         {
-            Shoot();
+            RequestShootServerRpc();
         }
     }
 
@@ -27,17 +30,29 @@ public class TankShooting : MonoBehaviour
         return Time.time >= lastFireTime + fireCooldown;
     }
 
-    void Shoot()
+    [ServerRpc]
+    private void RequestShootServerRpc(ServerRpcParams rpcParams = default)
     {
         lastFireTime = Time.time;
-        Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
 
-        // Play shooting sound at the fire point (instead of tank)
+        GameObject bulletInstance = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        NetworkObject bulletNetworkObject = bulletInstance.GetComponent<NetworkObject>();
+
+        if (bulletNetworkObject != null)
+        {
+            bulletNetworkObject.Spawn(true); // Spawn bullet across the network
+        }
+
+        PlayShootSoundClientRpc();
+    }
+
+    [ClientRpc]
+    private void PlayShootSoundClientRpc()
+    {
         if (shootSound != null)
         {
             AudioSource.PlayClipAtPoint(shootSound, firePoint.position, shootVolume);
         }
-
-        Debug.Log(gameObject.name + " fired a bullet!");
     }
 }
+

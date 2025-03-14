@@ -1,81 +1,139 @@
 using UnityEngine;
+using Unity.Netcode;
 
-public class MultiplayerMovement : MonoBehaviour
+public class MultiplayerMovement : NetworkBehaviour
 {
-    public float moveSpeed = 5f;  // Speed of forward/backward movement
-    public float rotationSpeed = 200f;  // Speed of turning
+    public float moveSpeed = 5f;
+    public float rotationSpeed = 200f;
 
     private Rigidbody2D rb;
     private float moveInput;
     private float rotateInput;
 
-    public AudioClip moveSound; // Assign in Inspector
-    private AudioSource audioSource;
-    public float moveVolume = 0.2f; //  Lower movement sound volume
+    private Camera playerCamera;
 
-    public bool isPlayer1 = true; // Toggle in Unity: Player 1 , Player 2 
+    [Header("Player Movement Boundaries")]
+    public float playerMinX = -14f, playerMaxX = 15f;
+    public float playerMinY = -14f, playerMaxY = 15f;
 
-    [SerializeField] private float minX = -15f, maxX = 15f; // X boundaries
-    [SerializeField] private float minY = -15f, maxY = 15f; // Y boundaries
+    [Header("Camera Boundaries")]
+    public float cameraMinX = -4.5f, cameraMaxX = 5.5f;
+    public float cameraMinY = -9f, cameraMaxY = 10f;
+
+    // List of spawn positions for players
+    private static Vector2[] spawnPositions = new Vector2[]
+    {
+        new Vector2(-10f, 0f),  // Host spawn
+        new Vector2(10f, 0f),   // First client
+        new Vector2(-10f, 5f),  // Second client
+        new Vector2(10f, 5f),   // Third client
+    };
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        audioSource = GetComponent<AudioSource>();
 
-        // Setup looped engine sound with lower volume
-        if (moveSound != null)
+        if (IsOwner)
         {
-            audioSource.clip = moveSound;
-            audioSource.loop = true;
-            audioSource.volume = moveVolume; //  Set lower volume
-            audioSource.Play();
-            audioSource.Pause(); // Start paused, unpause when moving or rotating
+            RequestSpawnPositionServerRpc();
         }
     }
 
     void Update()
     {
-        if (isPlayer1)
-        {
-            // Player 1 (WASD)
-            moveInput = Input.GetAxisRaw("Vertical");  // W/S = Forward/Backward
-            rotateInput = Input.GetAxisRaw("Horizontal");  // A/D = Rotate Left/Right
-        }
-        else
-        {
-            // Player 2 (Arrow Keys)
-            moveInput = Input.GetAxisRaw("Vertical2");  // Up/Down = Forward/Backward
-            rotateInput = Input.GetAxisRaw("Horizontal2");  // Left/Right = Rotate
-        }
+        if (!IsOwner) return;
 
-        //  If moving or rotating, play sound
-        if (moveInput != 0 || rotateInput != 0)
+        moveInput = Input.GetAxisRaw("Vertical");
+        rotateInput = Input.GetAxisRaw("Horizontal");
+
+        MoveServerRpc(moveInput, rotateInput);
+
+        // Make the camera follow the player but stay within camera bounds
+        if (playerCamera != null)
         {
-            if (!audioSource.isPlaying)
-                audioSource.UnPause();
-        }
-        else
-        {
-            audioSource.Pause(); // Stop sound when idle
+            float clampedX = Mathf.Clamp(transform.position.x, cameraMinX, cameraMaxX);
+            float clampedY = Mathf.Clamp(transform.position.y, cameraMinY, cameraMaxY);
+            playerCamera.transform.position = new Vector3(clampedX, clampedY, -10);
         }
     }
 
-    void FixedUpdate()
+    [ServerRpc]
+    private void RequestSpawnPositionServerRpc(ServerRpcParams rpcParams = default)
     {
-        // Move the tank forward/backward
-        Vector2 movement = transform.right * moveInput * moveSpeed * Time.fixedDeltaTime;
+        int clientIndex = (int)rpcParams.Receive.SenderClientId;
+
+        if (clientIndex >= spawnPositions.Length)
+        {
+            clientIndex = spawnPositions.Length - 1;
+        }
+
+        Vector2 assignedPosition = spawnPositions[clientIndex];
+
+        transform.position = assignedPosition;
+
+        UpdateSpawnPositionClientRpc(assignedPosition);
+    }
+
+    [ClientRpc]
+    private void UpdateSpawnPositionClientRpc(Vector2 newPosition)
+    {
+        if (!IsOwner)
+        {
+            transform.position = newPosition;
+        }
+
+        AssignCamera();
+    }
+
+    private void AssignCamera()
+    {
+        if (!IsOwner) return; // Ensure only the local player assigns the camera
+
+        playerCamera = Camera.main;
+
+        if (playerCamera == null)
+        {
+            playerCamera = FindObjectOfType<Camera>();
+        }
+
+        if (playerCamera != null)
+        {
+            Debug.Log("MultiplayerMovement: Camera assigned successfully!");
+        }
+        else
+        {
+            Debug.LogError("MultiplayerMovement: No Camera found in the scene! Make sure the Camera is tagged 'MainCamera'.");
+        }
+    }
+
+    [ServerRpc]
+    private void MoveServerRpc(float move, float rotate, ServerRpcParams rpcParams = default)
+    {
+        if (!IsServer) return;
+
+        Vector2 movement = transform.right * move * moveSpeed * Time.fixedDeltaTime;
         Vector2 newPosition = rb.position + movement;
 
-        // Clamp position to keep within the map bounds
-        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
-        newPosition.y = Mathf.Clamp(newPosition.y, minY, maxY);
+        newPosition.x = Mathf.Clamp(newPosition.x, playerMinX, playerMaxX);
+        newPosition.y = Mathf.Clamp(newPosition.y, playerMinY, playerMaxY);
 
-        // Apply the movement (stays within boundaries)
+        float newRotation = rb.rotation - (rotate * rotationSpeed * Time.fixedDeltaTime);
+
         rb.MovePosition(newPosition);
+        rb.MoveRotation(newRotation);
 
-        // Rotate the tank
-        float rotation = -rotateInput * rotationSpeed * Time.fixedDeltaTime;
-        rb.MoveRotation(rb.rotation + rotation);
+        UpdatePositionClientRpc(newPosition, newRotation);
+    }
+
+    [ClientRpc]
+    private void UpdatePositionClientRpc(Vector2 newPosition, float newRotation)
+    {
+        if (IsOwner) return;
+
+        rb.MovePosition(newPosition);
+        rb.MoveRotation(newRotation);
     }
 }
+
+
+

@@ -28,21 +28,21 @@ public class GameOverManager : MonoBehaviour
     {
         instance.gameOverPanel.SetActive(true);
         instance.winnerText.text = winner;
-        instance.DisablePlayerMovement(); // ✅ Stop players from moving
+        instance.DisablePlayerMovement(); //  Stop players from moving
     }
 
     public void RestartGame()
     {
-        gameOverPanel.SetActive(false); // ✅ Hide Game Over Screen before restarting
+        gameOverPanel.SetActive(false); // Hide Game Over Screen before restarting
         SceneManager.LoadScene(SceneManager.GetActiveScene().name); // Reload the game scene
     }
 
     void DisablePlayerMovement()
     {
-        MultiplayerMovement[] players = FindObjectsOfType<MultiplayerMovement>(); // ✅ Find all players
+        MultiplayerMovement[] players = FindObjectsOfType<MultiplayerMovement>(); //  Find all players
         foreach (MultiplayerMovement player in players)
         {
-            player.enabled = false; // ✅ Disable movement script
+            player.enabled = false; //  Disable movement script
         }
     }
 }

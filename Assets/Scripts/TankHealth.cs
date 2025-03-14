@@ -1,158 +1,154 @@
 ﻿using System.Collections;
 using UnityEngine;
+using Unity.Netcode;
 
-public class TankHealth : MonoBehaviour
+public class TankHealth : NetworkBehaviour
 {
     public int maxHealth = 3;
-    private int currentHealth;
+    private NetworkVariable<int> currentHealth = new NetworkVariable<int>(3);
 
-    private bool isInvincible = false;
+    private NetworkVariable<bool> isInvincible = new NetworkVariable<bool>(false);
+
     public float invincibilityDuration = 2f;
     public float blinkInterval = 0.2f;
-    public float explosionDuration = 0.5f; // Explosion duration before destruction
+    public float explosionDuration = 0.5f;
 
     private SpriteRenderer[] spriteRenderers;
     private SpriteRenderer mainSpriteRenderer;
-    private Sprite originalSprite; // Store original tank sprite
+    private Sprite originalSprite;
 
-    public GameObject arrow;
-    public GameObject[] hearts; // ✅ Heart UI array (Assign in Inspector)
+    public GameObject[] hearts;
 
-    public AudioClip hitSound; // Assign in Inspector
-    public AudioClip explosionSound; // Assign in Inspector
-    public AudioClip pickupSound; // ✅ Assign healing sound in Inspector
-    public float soundVolume = 0.7f; // Adjust volume
+    public AudioClip hitSound;
+    public AudioClip explosionSound;
+    public float soundVolume = 0.7f;
 
-    public Sprite explosionSprite; // Assign explosion sprite in Inspector
+    public Sprite explosionSprite;
 
     private AudioSource audioSource;
 
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+        {
+            currentHealth.Value = maxHealth;
+        }
+
+        currentHealth.OnValueChanged += (oldValue, newValue) =>
+        {
+            UpdateHeartsClientRpc(newValue);
+        };
+
+        UpdateHeartsClientRpc(currentHealth.Value);
+    }
+
     void Start()
     {
-        currentHealth = maxHealth;
-
-        // ✅ Fix NullReferenceException for spriteRenderers
         spriteRenderers = GetComponentsInChildren<SpriteRenderer>();
-        if (spriteRenderers.Length == 0)
-        {
-            Debug.LogError(gameObject.name + " is missing SpriteRenderers!");
-        }
-
-        // ✅ Fix NullReferenceException for mainSpriteRenderer
         mainSpriteRenderer = GetComponent<SpriteRenderer>();
+        audioSource = GetComponent<AudioSource>();
+
         if (mainSpriteRenderer != null)
         {
-            originalSprite = mainSpriteRenderer.sprite; // Store original sprite
-        }
-        else
-        {
-            Debug.LogError(gameObject.name + " is missing a SpriteRenderer component!");
+            originalSprite = mainSpriteRenderer.sprite;
         }
 
-        // ✅ Fix NullReferenceException for audioSource
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-        {
-            Debug.LogError(gameObject.name + " is missing an AudioSource!");
-        }
-
-        // ✅ Fix NullReferenceException for explosionSprite
-        if (explosionSprite == null)
-        {
-            Debug.LogError(gameObject.name + " has no explosion sprite assigned!");
-        }
+        UpdateHeartsClientRpc(currentHealth.Value);
     }
 
     public void TakeDamage(int damage)
     {
-        if (isInvincible) return;
+        if (isInvincible.Value) return;
 
-        currentHealth -= damage;
-        Debug.Log(gameObject.name + " took damage! Health: " + currentHealth);
-
-        // ✅ Play hit sound if assigned
-        if (hitSound != null && audioSource != null)
+        if (IsServer)
         {
-            AudioSource.PlayClipAtPoint(hitSound, transform.position, soundVolume);
+            currentHealth.Value -= damage;
+
+            if (currentHealth.Value <= 0)
+            {
+                TriggerExplosionClientRpc();
+                StartCoroutine(ExplosionEffect());
+            }
+            else
+            {
+                StartInvincibilityServerRpc(); // Now properly calls invincibility function
+            }
         }
 
-        UpdateHearts(); // ✅ Remove a heart sprite when hit
-
-        if (currentHealth <= 0)
-        {
-            StartCoroutine(ExplosionEffect()); // Show explosion before destroying
-        }
-        else
-        {
-            StartCoroutine(BecomeInvincible());
-        }
+        PlayHitSoundClientRpc();
     }
 
     public void Heal(int amount)
     {
-        if (currentHealth < maxHealth) // ✅ Only heal if not at max health
+        if (IsServer)
         {
-            currentHealth += amount;
-            if (currentHealth > maxHealth)
-            {
-                currentHealth = maxHealth; // Prevent overhealing
-            }
-            Debug.Log(gameObject.name + " healed! Health: " + currentHealth);
-            UpdateHearts(); // ✅ Restore heart UI when healing
-
-            // ✅ Play healing sound
-            if (pickupSound != null)
-            {
-                AudioSource.PlayClipAtPoint(pickupSound, transform.position, soundVolume);
-            }
+            currentHealth.Value = Mathf.Min(currentHealth.Value + amount, maxHealth);
         }
     }
 
-    public bool CanHeal()
+    [ClientRpc]
+    private void UpdateHeartsClientRpc(int health)
     {
-        return currentHealth < maxHealth; // ✅ Returns true if healing is possible
-    }
+        if (hearts == null || hearts.Length == 0) return;
 
-    void UpdateHearts()
-    {
-        if (hearts == null || hearts.Length == 0)
-        {
-            Debug.LogWarning(gameObject.name + " has no hearts assigned in the Inspector!");
-            return;
-        }
-
-        // ✅ Hide all hearts first
         for (int i = 0; i < hearts.Length; i++)
         {
-            hearts[i].SetActive(false);
+            hearts[i].SetActive(i < health);
+        }
+    }
+
+    [ClientRpc]
+    private void PlayHitSoundClientRpc()
+    {
+        if (hitSound != null) AudioSource.PlayClipAtPoint(hitSound, transform.position, soundVolume);
+    }
+
+    [ClientRpc]
+    private void TriggerExplosionClientRpc()
+    {
+        if (explosionSprite != null)
+        {
+            foreach (SpriteRenderer sr in spriteRenderers)
+            {
+                sr.sprite = explosionSprite;
+            }
         }
 
-        // ✅ Show hearts up to the current health
-        for (int i = 0; i < currentHealth; i++)
+        if (explosionSound != null)
         {
-            hearts[i].SetActive(true);
+            AudioSource.PlayClipAtPoint(explosionSound, transform.position, soundVolume);
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void StartInvincibilityServerRpc()
+    {
+        if (isInvincible.Value) return;
+
+        isInvincible.Value = true;
+        StartCoroutine(BecomeInvincible());
     }
 
     IEnumerator BecomeInvincible()
     {
-        isInvincible = true;
+        isInvincible.Value = true;
         float elapsedTime = 0f;
 
         while (elapsedTime < invincibilityDuration)
         {
-            ToggleSpriteVisibility(false);
+            ToggleSpriteVisibilityClientRpc(false);
             yield return new WaitForSeconds(blinkInterval);
-            ToggleSpriteVisibility(true);
+            ToggleSpriteVisibilityClientRpc(true);
             yield return new WaitForSeconds(blinkInterval);
             elapsedTime += blinkInterval * 2;
         }
 
-        ToggleSpriteVisibility(true);
-        isInvincible = false;
+        ToggleSpriteVisibilityClientRpc(true);
+        isInvincible.Value = false;
     }
 
-    void ToggleSpriteVisibility(bool visible)
+    [ClientRpc]
+    private void ToggleSpriteVisibilityClientRpc(bool visible)
     {
         foreach (SpriteRenderer sr in spriteRenderers)
         {
@@ -162,55 +158,26 @@ public class TankHealth : MonoBehaviour
 
     IEnumerator ExplosionEffect()
     {
-        Debug.Log(gameObject.name + " exploded!");
-
-        // ✅ Play explosion sound
-        if (explosionSound != null)
-        {
-            AudioSource.PlayClipAtPoint(explosionSound, transform.position, soundVolume);
-        }
-
-        // ✅ Ensure sprite changes to explosion sprite
-        if (explosionSprite != null)
-        {
-            foreach (SpriteRenderer sr in spriteRenderers)
-            {
-                sr.sprite = explosionSprite;
-            }
-        }
-
-        // ✅ Disable movement & collision
         Collider2D collider = GetComponent<Collider2D>();
         if (collider != null) collider.enabled = false;
 
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb != null) rb.simulated = false;
 
-        yield return new WaitForSeconds(explosionDuration); // Wait for explosion effect
+        yield return new WaitForSeconds(explosionDuration);
 
-        DestroyTank();
+        DestroyTankServerRpc();
     }
 
-    void DestroyTank()
+    [ServerRpc(RequireOwnership = false)]
+    private void DestroyTankServerRpc()
     {
-        Debug.Log(gameObject.name + " has been destroyed!");
+        DestroyTankClientRpc();
+    }
 
-        if (arrow != null)
-        {
-            arrow.SetActive(false);
-        }
-
-        //  Show Game Over Screen and Declare Winner
-        if (gameObject.CompareTag("Player1"))
-        {
-            GameOverManager.ShowGameOver("Player 2 Wins!");
-        }
-        else if (gameObject.CompareTag("Player2"))
-        {
-            GameOverManager.ShowGameOver("Player 1 Wins!");
-        }
-
+    [ClientRpc]
+    private void DestroyTankClientRpc()
+    {
         Destroy(gameObject);
     }
 }
-

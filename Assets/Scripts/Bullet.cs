@@ -1,44 +1,75 @@
 using UnityEngine;
+using Unity.Netcode;
 
-public class Bullet : MonoBehaviour
+public class Bullet : NetworkBehaviour
 {
-    public float speed = 10f;  // Speed of bullet
-    public float lifeTime = 2f; // Destroy bullet after 2 seconds
+    public float speed = 10f;
+    public float lifeTime = 2f;
 
     private Rigidbody2D rb;
 
-    public AudioClip obstacleHitSound; // Assign in Inspector
-    public float hitVolume = 0.5f; // Adjust volume for obstacle hit sound
+    public AudioClip obstacleHitSound;
+    public float hitVolume = 0.5f;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        rb.velocity = transform.right * speed; // Move in tank's facing direction
-        Destroy(gameObject, lifeTime); // Auto-destroy bullet after some time
+
+        if (IsServer) // Server controls bullet movement
+        {
+            rb.linearVelocity = transform.right * speed;
+            Invoke(nameof(DestroyBullet), lifeTime); // Destroy bullet after some time
+        }
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (!IsServer) // Ensure Clients apply velocity when they receive the bullet
+        {
+            rb = GetComponent<Rigidbody2D>();
+            rb.linearVelocity = transform.right * speed;
+        }
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        if (!IsServer) return; // Only the server handles collisions
+
         if (other.CompareTag("Player") || other.CompareTag("Player1") || other.CompareTag("Player2"))
         {
             TankHealth tankHealth = other.GetComponent<TankHealth>();
             if (tankHealth != null)
             {
-                tankHealth.TakeDamage(1); // Reduce health by 1
+                tankHealth.TakeDamage(1);
             }
-            Destroy(gameObject); // Destroy bullet
+            DestroyBullet();
         }
-        else if (other.CompareTag("Obstacle")) // If bullet hits an obstacle
+        else if (other.CompareTag("Obstacle"))
         {
             Debug.Log("Bullet hit an obstacle!");
+            PlayHitSoundClientRpc();
+            DestroyBullet();
+        }
+    }
 
-            //  Play obstacle hit sound
-            if (obstacleHitSound != null)
+    [ClientRpc]
+    private void PlayHitSoundClientRpc()
+    {
+        if (obstacleHitSound != null)
+        {
+            AudioSource.PlayClipAtPoint(obstacleHitSound, transform.position, hitVolume);
+        }
+    }
+
+    private void DestroyBullet()
+    {
+        if (IsServer)
+        {
+            NetworkObject networkObject = GetComponent<NetworkObject>();
+            if (networkObject != null)
             {
-                AudioSource.PlayClipAtPoint(obstacleHitSound, transform.position, hitVolume);
+                networkObject.Despawn(true); // Remove bullet from all Clients
             }
-
-            Destroy(gameObject); // Destroy bullet
         }
     }
 }
