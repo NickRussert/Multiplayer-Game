@@ -20,6 +20,7 @@ public class TankHealth : NetworkBehaviour
     public GameObject[] hearts;
 
     public AudioClip hitSound;
+    public AudioClip healSound; // ✅ New sound for healing
     public AudioClip explosionSound;
     public float soundVolume = 0.7f;
 
@@ -78,11 +79,25 @@ public class TankHealth : NetworkBehaviour
         PlayHitSoundClientRpc();
     }
 
-    public void Heal(int amount)
+    // ✅ Function to restore health when a heart is picked up
+    public void RestoreHealth()
     {
-        if (IsServer)
+        if (!IsServer) return;
+
+        if (currentHealth.Value < maxHealth)
         {
-            currentHealth.Value = Mathf.Min(currentHealth.Value + amount, maxHealth);
+            currentHealth.Value++;
+            Debug.Log($"Player {OwnerClientId} restored health! Health: {currentHealth.Value}");
+            PlayHealSoundClientRpc();
+        }
+    }
+
+    [ClientRpc]
+    private void PlayHealSoundClientRpc()
+    {
+        if (healSound != null)
+        {
+            AudioSource.PlayClipAtPoint(healSound, transform.position, soundVolume);
         }
     }
 
@@ -181,5 +196,3 @@ public class TankHealth : NetworkBehaviour
         Destroy(gameObject);
     }
 }
-
-

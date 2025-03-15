@@ -29,7 +29,11 @@ public class MultiplayerMovement : NetworkBehaviour
         new Vector2(10f, 5f),   // Third client
     };
 
-    void Start()
+    [Header("Engine Sound Settings")]
+    public AudioSource engineSound;  // Reference to the engine sound
+    public float engineVolume = 0.5f; // Adjustable engine volume
+
+    private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
 
@@ -37,9 +41,17 @@ public class MultiplayerMovement : NetworkBehaviour
         {
             RequestSpawnPositionServerRpc();
         }
+
+        // Ensure the engine sound is set up correctly
+        if (engineSound != null)
+        {
+            engineSound.loop = true;
+            engineSound.volume = engineVolume;
+            engineSound.Stop(); // Start with no sound
+        }
     }
 
-    void Update()
+    private void Update()
     {
         if (!IsOwner) return;
 
@@ -47,6 +59,9 @@ public class MultiplayerMovement : NetworkBehaviour
         rotateInput = Input.GetAxisRaw("Horizontal");
 
         MoveServerRpc(moveInput, rotateInput);
+
+        // Handle engine sound
+        HandleEngineSound();
 
         // Make the camera follow the player but stay within camera bounds
         if (playerCamera != null)
@@ -133,7 +148,32 @@ public class MultiplayerMovement : NetworkBehaviour
         rb.MovePosition(newPosition);
         rb.MoveRotation(newRotation);
     }
+
+    //  Engine Sound Logic
+    private void HandleEngineSound()
+    {
+        if (engineSound == null) return;
+
+        // Adjust volume based on `engineVolume`
+        engineSound.volume = engineVolume;
+
+        if (Mathf.Abs(moveInput) > 0 || Mathf.Abs(rotateInput) > 0)
+        {
+            if (!engineSound.isPlaying)
+            {
+                engineSound.Play();
+            }
+        }
+        else
+        {
+            if (engineSound.isPlaying)
+            {
+                engineSound.Stop();
+            }
+        }
+    }
 }
+
 
 
 

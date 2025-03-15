@@ -99,10 +99,10 @@ GameObject:
   - component: {fileID: 485200709239167847}
   - component: {fileID: 8864979844381914528}
   - component: {fileID: 8618182578705797295}
-  - component: {fileID: 9023312022888377945}
   - component: {fileID: 7200174944691965342}
   - component: {fileID: 9220680896200572650}
   - component: {fileID: 9181381880904615138}
+  - component: {fileID: 9023312022888377945}
   - component: {fileID: 4232899251923339874}
   - component: {fileID: 8158843440605737520}
   - component: {fileID: -5592346041815816208}
@@ -231,28 +231,6 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &9023312022888377945
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3904219106188177649}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8baac96da20d0b74392add1423555c13, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 5
-  rotationSpeed: 200
-  playerMinX: -12
-  playerMaxX: 12
-  playerMinY: -8
-  playerMaxY: 8
-  cameraMinX: -4.5
-  cameraMaxX: 5.5
-  cameraMinY: -9
-  cameraMaxY: 10
 --- !u!50 &7200174944691965342
 Rigidbody2D:
   serializedVersion: 5
@@ -321,6 +299,30 @@ MonoBehaviour:
   explosionSound: {fileID: 8300000, guid: 84d64ae38a8685247afb91ea284580c4, type: 3}
   soundVolume: 0.7
   explosionSprite: {fileID: 21300000, guid: f6263e5950a53174f9ddeae11915e768, type: 3}
+--- !u!114 &9023312022888377945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3904219106188177649}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8baac96da20d0b74392add1423555c13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 5
+  rotationSpeed: 200
+  playerMinX: -12
+  playerMaxX: 12
+  playerMinY: -8
+  playerMaxY: 8
+  cameraMinX: -4.5
+  cameraMaxX: 5.5
+  cameraMinY: -9
+  cameraMaxY: 10
+  engineSound: {fileID: 8158843440605737520}
+  engineVolume: 0.5
 --- !u!61 &4232899251923339874
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -377,8 +379,8 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: 023f8f998920e5b41be6bbe43b17e653, type: 3}
+  m_Resource: {fileID: 8300000, guid: 023f8f998920e5b41be6bbe43b17e653, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
